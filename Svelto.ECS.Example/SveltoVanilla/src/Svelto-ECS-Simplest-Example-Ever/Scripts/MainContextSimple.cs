@@ -1,20 +1,26 @@
 ﻿using System;
 using System.Collections;
+using Svelto.ECS.Example.Simple.SimpleClass.Engine;
+using Svelto.ECS.Example.Simple.SimpleClass.Entity;
+using Svelto.ECS.Example.Simple.SimpleStruct.Engine;
+using Svelto.ECS.Example.Simple.SimpleStruct.Entity;
 using Svelto.ECS.Schedulers;
 using Svelto.WeakEvents;
 
 namespace Svelto.ECS.Example.Simple
 {
-    //region      
-    //with Unity there is no real reason to use any different than the 
-    //provided UnitySubmissionEntityViewScheduler. However Svelto.ECS
-    //has been written to be platform indipendent, so that you can
-    //write your own scheduler on another platform.
-    //The following scheduler has been made just for the sole purpose
-    //to show the simplest execution possible, which is add entityViews
-    //in the same moment they are built.
-    //endregion
-    class SimpleSubmissionEntityViewScheduler: EntitySubmissionScheduler
+    #region comment
+    /// <summary>
+    /// with Unity there is no real reason to use any different than the 
+    ///provided UnitySubmissionEntityViewScheduler. However Svelto.ECS
+    ///has been written to be platform indipendent, so that you can
+    ///write your own scheduler on another platform.
+    ///The following scheduler has been made just for the sole purpose
+    ///to show the simplest execution possible, which is add entityViews
+    ///in the same moment they are built.
+    /// </summary>
+    #endregion
+    class SimpleSubmissionEntityViewScheduler : EntitySubmissionScheduler
     {
         public override void Schedule(WeakAction submitEntityViews)
         {
@@ -37,14 +43,16 @@ namespace Svelto.ECS.Example.Simple
         }
     }
 
-    //region      
-    //The Context is the framework starting point.
-    //As Composition root, it gives back to the coder the responsibility to create, 
-    //initialize and inject dependencies.
-    //Every application can have more than one context and every context can have one
-    //or more composition roots.
-    //Svelto.Context is actually separated by Svelto.ECS has they can live indipendently
-    //endregion
+    #region comment
+    /// <summary>
+    ///The Context is the framework starting point.
+    ///As Composition root, it gives back to the coder the responsibility to create, 
+    ///initialize and inject dependencies.
+    ///Every application can have more than one context and every context can have one
+    ///or more composition roots.
+    ///Svelto.Context is actually separated by Svelto.ECS has they can live indipendently
+    /// </summary>
+    #endregion
     public class SimpleCompositionRoot
     {
         public SimpleCompositionRoot()
@@ -56,11 +64,11 @@ namespace Svelto.ECS.Example.Simple
 
         private IEnumerator Run()
         {
-            //region            
+            #region comment  
             //An EngineRoot holds all the engines created so far and is 
             //responsible of the injection of the entity entityViews inside every
             //relative engine.
-            //endregion
+            #endregion
             _enginesRoot = new EnginesRoot(new SimpleSubmissionEntityViewScheduler());
 
             //an EnginesRoot must never
@@ -74,24 +82,24 @@ namespace Svelto.ECS.Example.Simple
             
             //number of nodes/implementor not 1:1 to component
             object[] implementors = new object[1];
-
+            int i = 0;
+#if PROFILE
             entityFactory.Preallocate<SimpleEntityDescriptor>(10000000);
 
             watch.Start();
 
-            int i = 0;
-            
             for (i = 0; i < 10000000; i++)
             {
+#endif
                 implementors[0] = new SimpleImplementor("simpleEntity");
                     
                 entityFactory.BuildEntity<SimpleEntityDescriptor>(i, implementors);
+#if PROFILE
             }
-            
+
+
             watch.Stop();
 
-            Utility.Console.Log("building");
-            
             Utility.Console.Log(watch.ElapsedMilliseconds.ToString());
 
             entityFactory.Preallocate<SimpleStructEntityDescriptor>(10000000);
@@ -100,13 +108,15 @@ namespace Svelto.ECS.Example.Simple
             watch.Restart();
 
             for (i = 0; i < 10000000; i++)
+#endif
                 entityFactory.BuildEntityInGroup<SimpleStructEntityDescriptor>(i, 0);
-
+#if PROFILE
             watch.Stop();
 
             Utility.Console.Log(watch.ElapsedMilliseconds.ToString());
-            
+
             System.Environment.Exit(0);
+#endif
 
             Utility.Console.Log("built");
 
@@ -116,120 +126,122 @@ namespace Svelto.ECS.Example.Simple
         EnginesRoot _enginesRoot;
     }
 
-    /// <summary>
-/// entity
-/// </summary>
-    public interface ISimpleComponent
+    namespace SimpleClass
     {
-        string name { get; }
-    }
-
-    class SimpleImplementor:ISimpleComponent
-    {
-        public SimpleImplementor(string name)
+        namespace Entity
         {
-            _name = name;
-        }
-
-        public string name { get { return _name; }}
-
-        readonly string _name;
-    }
-
-    class SimpleEntityDescriptor : GenericEntityDescriptor<SimpleEntityView>
-    {
-    }
-    
-    //Entity -> EV1, EV2, EV3
-    // 
-    //GuiEngine, HealthEngine, SimpleEngine
-    
-    //entityView.simpleComponent.disable = true;
-    
-    
-
-    //namespace
-    public class SimpleEngine : SingleEntityViewEngine<SimpleEntityView>
-    {
-        IEntityFunctions _entityFunctions;
-
-        public SimpleEngine(IEntityFunctions entityFunctions)
-        {
-            _entityFunctions = entityFunctions;
-        }
-        
-        protected override void Add(SimpleEntityView entityView)
-        {
-            Utility.Console.Log("EntityView Added");
-            
-            _entityFunctions.RemoveEntity<SimpleEntityDescriptor>(entityView.ID);
-        }
-
-        protected override void Remove(SimpleEntityView entityView)
-        {
-            Utility.Console.Log(entityView.simpleComponent.name + "EntityView Removed");
-        }
-    }
-        
-    public class SimpleEntityView : EntityView<SimpleEntityView>
-    {
-        public ISimpleComponent         simpleComponent;
-    }
-    
-    class SimpleStructEntityDescriptor : MixedEntityDescriptor<EntityStructBuilder<SimpleEntityStruct>>
-    {}
-    
-    public class SimpleStructEngine : IQueryingEntityViewEngine
-    {
-        public IEngineEntityViewDB entityViewsDB { get; set; }
-        
-        public void Ready()
-        {
-            Update().Run();
-        }
-
-        IEnumerator Update()
-        {
-            var watch = new System.Diagnostics.Stopwatch();
-
-            Utility.Console.Log("Task Waiting");
-
-            while (true)
+            public interface ISimpleComponent
             {
-                int count;
+                string name { get; }
+            }
 
-                var entityViews = entityViewsDB.QueryGroupedEntityViewsAsArray<SimpleEntityStruct>(0, out count);
-
-                if (count > 0)
+            class SimpleImplementor : ISimpleComponent
+            {
+                public SimpleImplementor(string name)
                 {
-                    for (int i = 0; i < count; i++)
-                        _addOne(ref entityViews[i].counter);
-                    
-                    Utility.Console.Log("Task Done");
-
-                    yield break;
+                    this.name = name;
                 }
 
-                yield return null;
+                public string name { get; }
+            }
+
+            class SimpleEntityDescriptor : GenericEntityDescriptor<SimpleEntityView>
+            {}
+        }
+
+        namespace Engine
+        {
+            public class SimpleEngine : SingleEntityViewEngine<SimpleEntityView>
+            {
+                IEntityFunctions _entityFunctions;
+
+                public SimpleEngine(IEntityFunctions entityFunctions)
+                {
+                    _entityFunctions = entityFunctions;
+                }
+
+                protected override void Add(SimpleEntityView entityView)
+                {
+                    Utility.Console.Log("EntityView Added");
+
+                    _entityFunctions.RemoveEntity<SimpleEntityDescriptor>(entityView.ID);
+                }
+
+                protected override void Remove(SimpleEntityView entityView)
+                {
+                    Utility.Console.Log(entityView.simpleComponent.name + "EntityView Removed");
+                }
             }
         }
 
-        static void _addOne(ref int counter)
+        public class SimpleEntityView : EntityView
         {
-            counter += 1;
+            public ISimpleComponent simpleComponent;
         }
     }
 
-    struct SimpleEntityStruct : IEntityStruct
+    namespace SimpleStruct
     {
-        int _id;
-
-        int IEntityView.ID { get { return _id; } }
-        int IEntityStruct.ID { set { _id = value; } }
-
-        public int counter;
+        namespace Entity
+        {
+            class SimpleStructEntityDescriptor : MixedEntityDescriptor<EntityStructBuilder<SimpleEntityStruct>>
+            { }
+        }
     }
-    
+
+    namespace SimpleStruct
+    {
+        namespace Engine
+        { 
+            struct SimpleEntityStruct : IEntityStruct
+            {
+                int _id;
+
+                int IEntityView.ID { get { return _id; } }
+                int IEntityStruct.ID { set { _id = value; } }
+
+                public int counter;
+            }
+
+            public class SimpleStructEngine : IQueryingEntityViewEngine
+            {
+                public IEngineEntityViewDB entityViewsDB { get; set; }
+
+                public void Ready()
+                {
+                    Update().Run();
+                }
+
+                IEnumerator Update()
+                {
+                    Utility.Console.Log("Task Waiting");
+
+                    while (true)
+                    {
+                        var entityViews = entityViewsDB.QueryGroupedEntityViewsAsArray<SimpleEntityStruct>(0, out int count);
+
+                        if (count > 0)
+                        {
+                            for (int i = 0; i < count; i++)
+                                AddOne(ref entityViews[i].counter);
+
+                            Utility.Console.Log("Task Done");
+
+                            yield break;
+                        }
+
+                        yield return null;
+                    }
+                }
+
+                static void AddOne(ref int counter)
+                {
+                    counter += 1;
+                }
+            }
+        }
+    }
+
     //////
 
     //region      
