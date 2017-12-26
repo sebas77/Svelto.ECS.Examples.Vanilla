@@ -4,6 +4,7 @@ using Svelto.ECS.Example.Simple.SimpleClass.Engine;
 using Svelto.ECS.Example.Simple.SimpleClass.Entity;
 using Svelto.ECS.Example.Simple.SimpleStruct.Engine;
 using Svelto.ECS.Example.Simple.SimpleStruct.Entity;
+using Svelto.ECS.Internal;
 using Svelto.ECS.Schedulers;
 using Svelto.WeakEvents;
 
@@ -82,21 +83,22 @@ namespace Svelto.ECS.Example.Simple
             
             //number of nodes/implementor not 1:1 to component
             object[] implementors = new object[1];
-            int i = 0;
+            int entityID = 0;
 #if PROFILE
             entityFactory.Preallocate<SimpleEntityDescriptor>(10000000);
 
             watch.Start();
 
-            for (i = 0; i < 10000000; i++)
+            for (entityID = 0; entityID < 10000000; entityID++)
             {
 #endif
                 implementors[0] = new SimpleImplementor("simpleEntity");
                     
-                entityFactory.BuildEntity<SimpleEntityDescriptor>(i, implementors);
-#if PROFILE
+                entityFactory.BuildEntity<SimpleEntityDescriptor>(entityID, implementors);
+            implementors[0] = new SimpleInGroupImplementor(0);
+            entityFactory.BuildEntityInGroup<SimpleEntityInGroupDescriptor>(entityID, 0, implementors);
+    #if PROFILE
             }
-
 
             watch.Stop();
 
@@ -107,9 +109,10 @@ namespace Svelto.ECS.Example.Simple
 
             watch.Restart();
 
-            for (i = 0; i < 10000000; i++)
+            for (entityID = 0; entityID < 10000000; entityID++)
 #endif
-                entityFactory.BuildEntityInGroup<SimpleStructEntityDescriptor>(i, 0);
+            const int groupID = 0;
+            entityFactory.BuildEntityInGroup<SimpleStructEntityDescriptor>(entityID, groupID);
 #if PROFILE
             watch.Stop();
 
@@ -134,24 +137,42 @@ namespace Svelto.ECS.Example.Simple
             {
                 string name { get; }
             }
+            public interface ISimpleInGroupComponent
+            {
+                int groupID { get; set;  }
+            }
 
             class SimpleImplementor : ISimpleComponent
             {
                 public SimpleImplementor(string name)
-                {
-                    this.name = name;
-                }
+                {  this.name = name; }
 
                 public string name { get; }
             }
 
+            class SimpleInGroupImplementor : ISimpleInGroupComponent
+            {
+                public SimpleInGroupImplementor(int groupID)
+                {
+                    this.groupID = groupID;
+                }
+
+                public int groupID
+                {
+                    get; set;
+                }
+            }
+
             class SimpleEntityDescriptor : GenericEntityDescriptor<SimpleEntityView>
             {}
+
+            class SimpleEntityInGroupDescriptor : GenericEntityDescriptor<SimpleEntityInGroupView>
+            { }
         }
 
         namespace Engine
         {
-            public class SimpleEngine : SingleEntityViewEngine<SimpleEntityView>
+            public class SimpleEngine : MultiEntityViewsEngine<SimpleEntityView, SimpleEntityInGroupView>
             {
                 IEntityFunctions _entityFunctions;
 
@@ -167,9 +188,23 @@ namespace Svelto.ECS.Example.Simple
                     _entityFunctions.RemoveEntity<SimpleEntityDescriptor>(entityView.ID);
                 }
 
+                protected override void Add(SimpleEntityInGroupView entityView)
+                {
+                    Utility.Console.Log("grouped EntityView Added");
+
+                    _entityFunctions.SwapEntityGroup<SimpleEntityInGroupDescriptor>(entityView.ID, entityView.simpleComponent.groupID, 1);
+                    entityView.simpleComponent.groupID = 1;
+                    _entityFunctions.RemoveEntityFromGroup<SimpleEntityInGroupDescriptor>(entityView.ID, 1);
+                }
+
                 protected override void Remove(SimpleEntityView entityView)
                 {
                     Utility.Console.Log(entityView.simpleComponent.name + "EntityView Removed");
+                }
+
+                protected override void Remove(SimpleEntityInGroupView entityView)
+                {
+                    Utility.Console.Log( "Grouped EntityView Removed");
                 }
             }
         }
@@ -178,6 +213,11 @@ namespace Svelto.ECS.Example.Simple
         {
             public ISimpleComponent simpleComponent;
         }
+
+        public class SimpleEntityInGroupView: EntityView
+        {
+            public ISimpleInGroupComponent simpleComponent;
+        }
     }
 
     namespace SimpleStruct
@@ -185,12 +225,9 @@ namespace Svelto.ECS.Example.Simple
         namespace Entity
         {
             class SimpleStructEntityDescriptor : MixedEntityDescriptor<EntityStructBuilder<SimpleEntityStruct>>
-            { }
+            {}
         }
-    }
 
-    namespace SimpleStruct
-    {
         namespace Engine
         { 
             struct SimpleEntityStruct : IEntityStruct
