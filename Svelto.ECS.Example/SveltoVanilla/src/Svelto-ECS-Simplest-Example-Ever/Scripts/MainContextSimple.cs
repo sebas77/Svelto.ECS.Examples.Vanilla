@@ -1,10 +1,10 @@
-﻿using System;
+﻿#define PROFILE
+using System;
 using System.Collections;
 using Svelto.ECS.Example.Simple.SimpleClass.Engine;
 using Svelto.ECS.Example.Simple.SimpleClass.Entity;
 using Svelto.ECS.Example.Simple.SimpleStruct.Engine;
 using Svelto.ECS.Example.Simple.SimpleStruct.Entity;
-using Svelto.ECS.Internal;
 using Svelto.ECS.Schedulers;
 using Svelto.WeakEvents;
 
@@ -79,12 +79,16 @@ namespace Svelto.ECS.Example.Simple
             _enginesRoot.AddEngine(new SimpleEngine(entityFunctions));
             _enginesRoot.AddEngine(new SimpleStructEngine());
             
-            var watch = new System.Diagnostics.Stopwatch();
-            
             //number of nodes/implementor not 1:1 to component
             object[] implementors = new object[1];
-            int entityID = 0;
+            int entityID = 0; int groupID = 0;
+
+            implementors[0] = new SimpleInGroupImplementor(0);
+            entityFactory.BuildEntityInGroup<SimpleEntityInGroupDescriptor>(entityID, 0, implementors);
+
 #if PROFILE
+            var watch = new System.Diagnostics.Stopwatch();
+
             entityFactory.Preallocate<SimpleEntityDescriptor>(10000000);
 
             watch.Start();
@@ -92,12 +96,10 @@ namespace Svelto.ECS.Example.Simple
             for (entityID = 0; entityID < 10000000; entityID++)
             {
 #endif
-                implementors[0] = new SimpleImplementor("simpleEntity");
+            implementors[0] = new SimpleImplementor("simpleEntity");
                     
                 entityFactory.BuildEntity<SimpleEntityDescriptor>(entityID, implementors);
-            implementors[0] = new SimpleInGroupImplementor(0);
-            entityFactory.BuildEntityInGroup<SimpleEntityInGroupDescriptor>(entityID, 0, implementors);
-    #if PROFILE
+#if PROFILE
             }
 
             watch.Stop();
@@ -111,7 +113,7 @@ namespace Svelto.ECS.Example.Simple
 
             for (entityID = 0; entityID < 10000000; entityID++)
 #endif
-            const int groupID = 0;
+            
             entityFactory.BuildEntityInGroup<SimpleStructEntityDescriptor>(entityID, groupID);
 #if PROFILE
             watch.Stop();
