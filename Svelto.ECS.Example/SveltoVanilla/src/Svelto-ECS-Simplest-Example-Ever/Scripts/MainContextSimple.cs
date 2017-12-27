@@ -1,4 +1,4 @@
-﻿#define PROFILE
+﻿//#define PROFILE
 using System;
 using System.Collections;
 using Svelto.ECS.Example.Simple.SimpleClass.Engine;
