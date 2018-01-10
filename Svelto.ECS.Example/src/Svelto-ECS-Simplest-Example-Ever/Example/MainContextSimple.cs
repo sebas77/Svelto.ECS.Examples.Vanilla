@@ -7,7 +7,7 @@ using Svelto.ECS.Schedulers;
 #region comment
 ///
 /// Promoting a strict hierarchical namespace structure is an important part of the Svelto.ECS
-/// Philosopy. EntityViews must be used by Engines belonging to the same namespace or parent
+/// Philosophy. EntityViews must be used by Engines belonging to the same namespace or parent
 /// one
 ///  
 #endregion
@@ -24,7 +24,7 @@ using System.Diagnostics;
 namespace Svelto.ECS.Vanilla.Example
 {
     #region comment
-    //the whole svelto framework is driven by the creation of Composition Root (see my articles for the definition)
+    //the whole svelto framework is driven by the Composition Roots created (see my articles for the definition)
     //One or more composition roots can be created inside a Context.
     //Since we are not using Unity for this example, the simplest context we can use is the Main entry point of the 
     //program
@@ -56,7 +56,7 @@ namespace Svelto.ECS.Vanilla.Example
         /// <summary>
         /// Naivily we run the mainloop inside the constructor using Svelto.Tasks
         /// extension. Run() is the simple extension to run whatever IEnumerator.
-        /// When used outside Unity, Run() starts on its own thread.
+        /// When used outside Unity, Run() starts on the Svelto.Tasks main thread.
         /// </summary>
         #endregion
         public SimpleContext()
@@ -80,8 +80,7 @@ namespace Svelto.ECS.Vanilla.Example
 
             #region comment
             //an EnginesRoot must never be injected inside other classes
-            //that's why the IEntityFactory and IEntityFunctions implementation
-            //are weakreference to the Engineroot.
+            //only IEntityFactory and IEntityFunctions implementation can
             #endregion
             IEntityFactory entityFactory = _enginesRoot.GenerateEntityFactory();
             IEntityFunctions entityFunctions = _enginesRoot.GenerateEntityFunctions();
@@ -92,7 +91,7 @@ namespace Svelto.ECS.Vanilla.Example
             _enginesRoot.AddEngine(new SimpleStructEngine());
             
             #region comment
-            //the number of implementors to use to implement the /Entity components is arbitrary and it depends
+            //the number of implementors to use to implement the Entity components is arbitrary and it depends
             //by the modularity/reusability of the implementors.
             //You may avoid to create new implementors if you create modular/reusable ones
             //The concept of implementor is pretty unique in Svelto.ECS
@@ -109,6 +108,8 @@ namespace Svelto.ECS.Vanilla.Example
                           //we don't want that, right? :) )
                           implementors[0] = new SimpleImplementor("simpleEntity");
 
+                          //Build a SimpleEntity using specific implementors to implement the 
+                          //Entity Components interfaces
                           entityFactory.BuildEntity<SimpleEntityDescriptor>(entityID, implementors);
                       }, entityFactory);
 
@@ -119,11 +120,15 @@ namespace Svelto.ECS.Vanilla.Example
             #endregion
             ProfileIt<SimpleStructEntityDescriptor>((entityID) =>
                       {
+                          //Build a SimpleStructEntity inside the group groupID
                           entityFactory.BuildEntityInGroup<SimpleStructEntityDescriptor>(entityID, groupID);
                       }, entityFactory);
             
             implementors[0] = new SimpleImplementor(groupID);
 
+            
+            //Build and BuildEntityInGroup can be used either with Entity defined by implementors
+            //and/or by structs
             entityFactory.BuildEntityInGroup<SimpleGroupedEntityDescriptor>(0, groupID, implementors);
             
             #region comment
@@ -146,7 +151,7 @@ namespace Svelto.ECS.Vanilla.Example
         /// <summary>
         ///with Unity there is no real reason to use any different than the 
         ///provided UnitySubmissionEntityViewScheduler. However Svelto.ECS
-        ///has been written to be platform indipendent, so that you can
+        ///has been written to be platform agnostic, so that you can
         ///write your own scheduler on another platform.
         ///The following scheduler has been made just for the sole purpose
         ///to show the simplest execution possible, which is add entityViews
@@ -243,10 +248,11 @@ namespace Svelto.ECS.Vanilla.Example
             /// accepts two Entities (so I can show the use of a MultiEntitiesViewEngine).
             /// Now, keep this in mind: an Engine should seldomly inherit from SingleEntityViewEngine
             /// or MultiEngineEntityViewsEngine.
-            /// The Add and Remove callback per Entity added is another unique feature of Svelto.ECS
-            /// and it's meant to be used if STRICTLY necessary. The feature has been mainly added
+            /// The Add and Remove callbacks per EntityView submitted is another unique feature of Svelto.ECS
+            /// and they are meant to be used if STRICTLY necessary. The feature has been mainly added
             /// to setup DispatchOnChange and DispatchOnSet (check my articles to know more), but
             /// it can be exploited for other reasons if well thought through!
+            /// So, yes, normally engines just implement IQueryingEntityViewEngine 
             /// </summary>
             #endregion
             public class SimpleEngine : MultiEntityViewsEngine<SimpleEntityView, SimpleGroupedEntityView>
@@ -258,11 +264,6 @@ namespace Svelto.ECS.Vanilla.Example
                     _entityFunctions = entityFunctions;
                 }
 
-                /// <summary>
-                /// With the following code I demostrate two features:
-                /// First how to move an entity
-                /// </summary>
-                /// <param name="entityView"></param>
                 protected override void Add(SimpleEntityView entityView)
                 {
 #if !PROFILE                    
@@ -277,6 +278,12 @@ namespace Svelto.ECS.Vanilla.Example
                     Utility.Console.Log(entityView.simpleComponent.name + "EntityView Removed");
                 }
 
+                /// <summary>
+                /// With the following code I demostrate two features:
+                /// First how to move an entity between groups
+                /// Second how to remove an entity from a group
+                /// </summary>
+                /// <param name="entityView"></param>
                 protected override void Add(SimpleGroupedEntityView entityView)
                 {
                     Utility.Console.Log("Grouped EntityView Added");
@@ -294,7 +301,7 @@ namespace Svelto.ECS.Vanilla.Example
             }
             #region comment
             /// <summary>
-            /// You must always design an Engine according the Entities it must handles.
+            /// You must always design an Engine according the Entities it must handle.
             /// The Entities must be real application/game entities and cannot be
             /// abstract concepts (It would be very dangerous to create abstract/meaningless
             /// entities just for the purpose to write specific logic).
