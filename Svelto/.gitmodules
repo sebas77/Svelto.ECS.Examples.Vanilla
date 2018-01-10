@@ -1,0 +1,9 @@
+[submodule "Svelto.ECS"]
+	path = Svelto.ECS
+	url = https://github.com/sebas77/Svelto.ECS.git
+[submodule "Svelto.Tasks"]
+	path = Svelto.Tasks
+	url = https://github.com/sebas77/Svelto.Tasks.git
+[submodule "Svelto.Common"]
+	path = Svelto.Common
+	url = https://github.com/sebas77/Svelto.Common.git

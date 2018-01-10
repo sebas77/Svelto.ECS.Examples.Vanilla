@@ -1,13 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-      <TargetFramework>netstandard2.0</TargetFramework>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <Compile Remove="SveltoVanilla\**" />
-      <EmbeddedResource Remove="SveltoVanilla\**" />
-      <None Remove="SveltoVanilla\**" />
-    </ItemGroup>
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="SveltoVanilla\src\Svelto-ECS-Simplest-Example-Ever\Scripts\MainContextSimple.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Svelto\Svelto.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="SveltoVanilla\src\Svelto-ECS-Simplest-Example-Ever\Scripts\MainContextSimple.cs" />
+  </ItemGroup>
 </Project>
