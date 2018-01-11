@@ -86,9 +86,9 @@ namespace Svelto.ECS.Vanilla.Example
             IEntityFunctions entityFunctions = _enginesRoot.GenerateEntityFunctions();
 
             //Add the Engine to manage the SimpleEntities
-            _enginesRoot.AddEngine(new SimpleEngine(entityFunctions));
+            _enginesRoot.AddEngine(new BehaviourForSimpleEntityEngine(entityFunctions));
             //Add the Engine to manage the SimpleStructEntities
-            _enginesRoot.AddEngine(new SimpleStructEngine());
+            _enginesRoot.AddEngine(new BehaviourForSimpleEntityAsStructEngine());
             
             #region comment
             //the number of implementors to use to implement the Entity components is arbitrary and it depends
@@ -233,10 +233,10 @@ namespace Svelto.ECS.Vanilla.Example
             //your entities with a name that comes from the Game Design domain.
             //More about this on my articles.
             #endregion
-            class SimpleEntityDescriptor : GenericEntityDescriptor<SimpleEntityView>
+            class SimpleEntityDescriptor : GenericEntityDescriptor<BehaviourEntityViewForSimpleEntity>
             {}
             
-            class SimpleGroupedEntityDescriptor : GenericEntityDescriptor<SimpleGroupedEntityView>
+            class SimpleGroupedEntityDescriptor : GenericEntityDescriptor<BehaviourEntityViewForSimpleGroupedEntity>
             {}
         }
 
@@ -255,27 +255,27 @@ namespace Svelto.ECS.Vanilla.Example
             /// So, yes, normally engines just implement IQueryingEntityViewEngine 
             /// </summary>
             #endregion
-            public class SimpleEngine : MultiEntityViewsEngine<SimpleEntityView, SimpleGroupedEntityView>
+            public class BehaviourForSimpleEntityEngine : MultiEntityViewsEngine<BehaviourEntityViewForSimpleEntity, BehaviourEntityViewForSimpleGroupedEntity>
             {
                 readonly IEntityFunctions _entityFunctions;
 
-                public SimpleEngine(IEntityFunctions entityFunctions)
+                public BehaviourForSimpleEntityEngine(IEntityFunctions entityFunctions)
                 {
                     _entityFunctions = entityFunctions;
                 }
 
-                protected override void Add(SimpleEntityView entityView)
+                protected override void Add(BehaviourEntityViewForSimpleEntity entity)
                 {
 #if !PROFILE                    
                     Utility.Console.Log("EntityView Added");
     
-                    _entityFunctions.RemoveEntity<SimpleEntityDescriptor>(entityView.ID);
+                    _entityFunctions.RemoveEntity<SimpleEntityDescriptor>(entity.ID);
 #endif    
                 }
 
-                protected override void Remove(SimpleEntityView entityView)
+                protected override void Remove(BehaviourEntityViewForSimpleEntity entity)
                 {
-                    Utility.Console.Log(entityView.simpleComponent.name + "EntityView Removed");
+                    Utility.Console.Log(entity.simpleComponent.name + "EntityView Removed");
                 }
 
                 /// <summary>
@@ -283,18 +283,18 @@ namespace Svelto.ECS.Vanilla.Example
                 /// First how to move an entity between groups
                 /// Second how to remove an entity from a group
                 /// </summary>
-                /// <param name="entityView"></param>
-                protected override void Add(SimpleGroupedEntityView entityView)
+                /// <param name="entity"></param>
+                protected override void Add(BehaviourEntityViewForSimpleGroupedEntity entity)
                 {
                     Utility.Console.Log("Grouped EntityView Added");
                     
-                    _entityFunctions.SwapEntityGroup<SimpleGroupedEntityDescriptor>(entityView.ID, entityView.simpleComponent.groupID, 1);
-                    entityView.simpleComponent.groupID = 1;
+                    _entityFunctions.SwapEntityGroup<SimpleGroupedEntityDescriptor>(entity.ID, entity.simpleComponent.groupID, 1);
+                    entity.simpleComponent.groupID = 1;
                     Utility.Console.Log("Grouped EntityView Swapped");
-                    _entityFunctions.RemoveEntityFromGroup<SimpleGroupedEntityDescriptor>(entityView.ID, entityView.simpleComponent.groupID);
+                    _entityFunctions.RemoveEntityFromGroup<SimpleGroupedEntityDescriptor>(entity.ID, entity.simpleComponent.groupID);
                 }
 
-                protected override void Remove(SimpleGroupedEntityView entityView)
+                protected override void Remove(BehaviourEntityViewForSimpleGroupedEntity entity)
                 {
                     Utility.Console.Log("Grouped EntityView Removed");
                 }
@@ -309,12 +309,12 @@ namespace Svelto.ECS.Vanilla.Example
             /// filtering of the components and promote abstraction/encapsulation
             /// </summary>
             #endregion
-            public class SimpleEntityView : EntityView
+            public class BehaviourEntityViewForSimpleEntity : EntityView
             {
                 public ISimpleComponent simpleComponent;
             }
             
-            public class SimpleGroupedEntityView : EntityView
+            public class BehaviourEntityViewForSimpleGroupedEntity : EntityView
             {
                 public ISimpleComponent simpleComponent;
             }
@@ -332,7 +332,7 @@ namespace Svelto.ECS.Vanilla.Example
         namespace SimpleEntityStruct
         {
             class SimpleStructEntityDescriptor : MixedEntityDescriptor
-                <EntityViewStructBuilder<SimpleEntityStructEngine.SimpleEntityViewStruct>>
+                <EntityViewStructBuilder<SimpleEntityStructEngine.BehaviourEntityViewForSimpleStructEntity>>
             {}
         }
 
@@ -340,7 +340,7 @@ namespace Svelto.ECS.Vanilla.Example
         { 
             //An EntityViewStruct must always implement the IEntityStruct interface
             //don't worry, boxing/unboxing will never happen.
-            struct SimpleEntityViewStruct : IEntityStruct
+            struct BehaviourEntityViewForSimpleStructEntity : IEntityStruct
             {
                 public int ID { get; set; }
 
@@ -353,7 +353,7 @@ namespace Svelto.ECS.Vanilla.Example
             /// struct are meant to be use for tight high performance loops where
             /// cache coherence is considered during the design process
             /// </summary>
-            public class SimpleStructEngine : IQueryingEntityViewEngine
+            public class BehaviourForSimpleEntityAsStructEngine : IQueryingEntityViewEngine
             {
                 public IEntityViewsDB entityViewsDB { private get; set; }
 
@@ -368,7 +368,7 @@ namespace Svelto.ECS.Vanilla.Example
 
                     while (true)
                     {
-                        var entityViews = entityViewsDB.QueryGroupedEntityViewsAsArray<SimpleEntityViewStruct>(0, out int count);
+                        var entityViews = entityViewsDB.QueryGroupedEntityViewsAsArray<BehaviourEntityViewForSimpleStructEntity>(0, out int count);
 
                         if (count > 0)
                         {
