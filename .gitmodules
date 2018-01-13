@@ -4,3 +4,6 @@
 [submodule "Svelto/Svelto.Tasks"]
 	path = Svelto/Svelto.Tasks
 	url = https://github.com/sebas77/Svelto.Tasks.git
+[submodule "Svelto/Svelto.Common"]
+	path = Svelto/Svelto.Common
+	url = https://github.com/sebas77/Svelto.Common.git
