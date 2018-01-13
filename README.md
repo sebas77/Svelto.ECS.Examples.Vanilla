@@ -5,4 +5,4 @@ The whole Svelto framework has been designed to be Unity agnostic. This is the s
 
 If you don't know Svelto, check my other repository, especially Svelto.ECS and Svelto.Tasks
 
-**Note: The Folder Svelto.ECS and Svelto.Common are submodules. If you find the empty, you need to update them through the submodule command**
+**Note: The Folder Svelto.ECS and Svelto.Common are submodules pointing to the relavite repositories. If you find the empty, you need to update them through the submodule command**
