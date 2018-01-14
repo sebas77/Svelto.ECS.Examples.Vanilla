@@ -2,4 +2,6 @@
 netcoreapp2.0
 obj
 netstandard2.0
-/.vs/SveltoVanilla/v15
+/.vs
+/Svelto/Svelto.ECS/Svelto.Common
+/Svelto/Svelto.Tasks/Svelto.Common
