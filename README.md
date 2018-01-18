@@ -5,4 +5,6 @@ The whole Svelto framework has been designed to be platform agnostic. This is th
 
 If you don't know Svelto, check my other repository, especially Svelto.ECS and Svelto.Tasks
 
+Relative article: http://www.sebaslab.com/learning-svelto-ecs-by-example-the-vanilla-example/
+
 **Note: The Folder Svelto.ECS, Svelto.Tasks and Svelto.Common are submodules pointing to the relavite repositories. If you find the empty, you need to update them through the submodule command. Check some instructions here: https://github.com/sebas77/Svelto.ECS.Vanilla.Example/wiki**
