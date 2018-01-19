@@ -7,4 +7,4 @@ If you don't know Svelto, check my other repository, especially Svelto.ECS and S
 
 Relative article: http://www.sebaslab.com/learning-svelto-ecs-by-example-the-vanilla-example/
 
-**Note: The Folder Svelto.ECS, Svelto.Tasks and Svelto.Common are submodules pointing to the relavite repositories. If you find the empty, you need to update them through the submodule command. Check some instructions here: https://github.com/sebas77/Svelto.ECS.Vanilla.Example/wiki**
+**Note: The folders Svelto.ECS, Svelto.Tasks and Svelto.Common, where present, are submodules pointing to the relavite repositories. If you find them empty, you need to update them through the submodule command. Check some instructions here: https://github.com/sebas77/Svelto.ECS.Vanilla.Example/wiki**
