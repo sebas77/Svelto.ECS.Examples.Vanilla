@@ -55,16 +55,16 @@ namespace Svelto.ECS.Vanilla.Example
         #region comment
         /// <summary>
         /// Naivily we run the mainloop inside the constructor using Svelto.Tasks
-        /// extension. Run() is the simple extension to run whatever IEnumerator.
-        /// When used outside Unity, Run() starts on the Svelto.Tasks main thread.
+        /// extension. MainApplicationLoop() is the simple extension to run whatever IEnumerator.
+        /// When used outside Unity, MainApplicationLoop() starts on the Svelto.Tasks main thread.
         /// </summary>
         #endregion
         public SimpleContext()
         {
-            Run().Run();
+            MainApplicationLoop().Run();
         }
 
-        IEnumerator Run()
+        IEnumerator MainApplicationLoop()
         {
             #region comment  
             //An EngineRoot holds all the engines created so far and is 
@@ -109,7 +109,8 @@ namespace Svelto.ECS.Vanilla.Example
                           implementors[0] = new SimpleImplementor("simpleEntity");
 
                           //Build a SimpleEntity using specific implementors to implement the 
-                          //Entity Components interfaces
+                          //Entity Components interfaces. The number of implementors can vary
+                          //but for the purposes of this example, one is enough.
                           entityFactory.BuildEntity<SimpleEntityDescriptor>(entityID, implementors);
                       }, entityFactory);
 
@@ -121,6 +122,8 @@ namespace Svelto.ECS.Vanilla.Example
             ProfileIt<SimpleStructEntityDescriptor>((entityID) =>
                       {
                           //Build a SimpleStructEntity inside the group groupID
+                          //Grouped entities can then queried by group. In a more complex scenario
+                          //it would be more used than not.
                           entityFactory.BuildEntityInGroup<SimpleStructEntityDescriptor>(entityID, groupID);
                       }, entityFactory);
             
@@ -130,11 +133,13 @@ namespace Svelto.ECS.Vanilla.Example
             //Build and BuildEntityInGroup can be used either with Entity defined by implementors
             //and/or by structs
             entityFactory.BuildEntityInGroup<SimpleGroupedEntityDescriptor>(0, groupID, implementors);
-            
+
             #region comment
             //quick way to submit entities, this is not the standard way, but if you
             //create a custom EntitySubmissionScheduler is up to you to decide
             //when the EntityViews are submited to the engines and DB.
+            //In Unity this step is hidden by the UnitySumbmissionEntityViewScheduler
+            //logic
             #endregion
             simpleSubmissionEntityViewScheduler.SubmitEntities();
 

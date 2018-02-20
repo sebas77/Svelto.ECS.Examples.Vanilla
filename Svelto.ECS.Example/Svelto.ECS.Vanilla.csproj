@@ -3,6 +3,9 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;UNITY_5_3_OR_NEWER</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="SveltoVanilla\src\Svelto-ECS-Simplest-Example-Ever\Scripts\MainContextSimple.cs" />
   </ItemGroup>
