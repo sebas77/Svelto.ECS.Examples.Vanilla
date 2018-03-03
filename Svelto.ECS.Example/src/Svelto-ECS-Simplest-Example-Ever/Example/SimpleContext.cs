@@ -7,7 +7,7 @@ using Svelto.ECS.Vanilla.Example.EntityAsClass.SimpleEntity.SimpleEntityEngine;
 
 //shows the code to execute to work with Entities as structs
 using Svelto.ECS.Vanilla.Example.EntityAsClass.EntityAsStruct;
-using Svelto.ECS.Vanilla.Example.EntityAsClass.EntityAsStruct.SimpleEntityStructEngine;
+using Svelto.ECS.Vanilla.Example.EntityAsClass.EntityAsStruct.BehaviourForEntityStructEngine;
 
 using Console = Utility.Console;
 
@@ -51,7 +51,7 @@ namespace Svelto.ECS.Vanilla.Example
             var entityFunctions = _enginesRoot.GenerateEntityFunctions();
 
             //Add the Engine to manage the SimpleEntities
-            _enginesRoot.AddEngine(new EntityClassEngine(entityFunctions));
+            _enginesRoot.AddEngine(new BehaviourForEntityClassEngine(entityFunctions));
             //Add the Engine to manage the SimpleStructEntities
             _enginesRoot.AddEngine(new EntityStructEngine());
 
@@ -126,7 +126,7 @@ namespace Svelto.ECS.Vanilla.Example
 
             #endregion
 
-            class SimpleEntityDescriptor : GenericEntityDescriptor<BehaviourEntityViewForSimpleEntity>
+            class SimpleEntityDescriptor : GenericEntityDescriptor<BehaviourEntityViewForEntity>
             {}
 
             namespace SimpleEntityEngine
@@ -143,7 +143,7 @@ namespace Svelto.ECS.Vanilla.Example
                 /// </summary>
     
                 #endregion
-                public class BehaviourEntityViewForSimpleEntity : EntityView
+                public class BehaviourEntityViewForEntity : EntityView
                 {
                     public IEntityComponent simpleComponent;
                 }
@@ -163,16 +163,16 @@ namespace Svelto.ECS.Vanilla.Example
     
                 #endregion
                 
-                public class EntityClassEngine : SingleEntityViewEngine<BehaviourEntityViewForSimpleEntity>
+                public class BehaviourForEntityClassEngine : SingleEntityViewEngine<BehaviourEntityViewForEntity>
                 {
                     readonly IEntityFunctions _entityFunctions;
     
-                    public EntityClassEngine(IEntityFunctions entityFunctions)
+                    public BehaviourForEntityClassEngine(IEntityFunctions entityFunctions)
                     {
                         _entityFunctions = entityFunctions;
                     }
     
-                    protected override void Add(BehaviourEntityViewForSimpleEntity entity)
+                    protected override void Add(BehaviourEntityViewForEntity entity)
                     {
                         if (entity.simpleComponent.isInGroup == false)
                         {
@@ -190,7 +190,7 @@ namespace Svelto.ECS.Vanilla.Example
                         }
                     }
     
-                    protected override void Remove(BehaviourEntityViewForSimpleEntity entity)
+                    protected override void Remove(BehaviourEntityViewForEntity entity)
                     {
                         if (entity.simpleComponent.isInGroup == false)
                             Console.Log(entity.simpleComponent.name + "EntityView Removed");
@@ -214,7 +214,7 @@ namespace Svelto.ECS.Vanilla.Example
             {
             }
 
-            namespace SimpleEntityStructEngine
+            namespace BehaviourForEntityStructEngine
             {
                 //An EntityStruct must always implement the IEntityStruct interface
                 //don't worry, boxing/unboxing will never happen.
