@@ -73,18 +73,19 @@ namespace Svelto.ECS.Vanilla.Example
             //build Entity with ID 1
             entityFactory.BuildEntity<SimpleEntityDescriptor>(1, new[] {new EntityImplementor("simpleEntity", false)});
             //build Entity with ID 0 in group 0
-            entityFactory.BuildEntityInGroup<SimpleEntityDescriptor>(0, 0, new[] {new EntityImplementor("simpleGroupedEntity", true)});
+            entityFactory.BuildEntity<SimpleEntityDescriptor>(0, 0, new[] {new EntityImplementor("simpleGroupedEntity", true)});
 
             #region comment           
             //Entities as struct do not need an implementor. They are much more rigid
-            //to use, but much faster. Please use them only when performance is really
-            //critical (most of the time is not)
+            //to use, but much faster. 
             //build entitystruct with ID 2 in group 0. Entities are 
             //separated by their type, but belong to the same group
             //if they have the same groupID. 
             #endregion
-            entityFactory.BuildEntityInGroup<SimpleEntityStructDescriptor>(2, 0, null);
 
+            Profile.It(100000, () => { entityFactory.BuildEntity<SimpleEntityStructDescriptor>(Profile.UglyCount++, 2, null); },
+                () => {entityFactory.PreallocateEntitySpace<SimpleEntityStructDescriptor>(2, 1000000);});
+            
             simpleSubmissionEntityViewScheduler.SubmitEntities();
 
             Console.Log("Done - click any button to quit");
@@ -119,19 +120,18 @@ namespace Svelto.ECS.Vanilla.Example
                 public bool isInGroup { get; }
             }
 
-            #region comment
+#region comment
 
             //The EntityDescriptor identifies your Entity. It's essential to identify
             //your entities with a name that comes from the Game Design domain.
 
-            #endregion
-
-            class SimpleEntityDescriptor : GenericEntityDescriptor<BehaviourEntityViewForEntity>
+#endregion
+            class SimpleEntityDescriptor : GenericEntityDescriptor<BehaviourEntityViewStruct>
             {}
 
             namespace SimpleEntityEngine
             {
-                #region comment
+#region comment
     
                 /// <summary>
                 ///     You must always design an Engine according the Entities it must handle.
@@ -140,15 +140,17 @@ namespace Svelto.ECS.Vanilla.Example
                 ///     entities just for the purpose to write specific logic).
                 ///     An EntityView is just how an Engine see a specific Entity, this allows
                 ///     filtering components and promote abstraction/encapsulation and single responsability
+                ///     EntityViews are therefore created together the Engine and for the Engine
                 /// </summary>
     
-                #endregion
-                public class BehaviourEntityViewForEntity : EntityView
+#endregion
+                public struct BehaviourEntityViewStruct : IEntityView
                 {
                     public IEntityComponent simpleComponent;
+                    public EGID ID { get; set; }
                 }
                
-                #region comment
+#region comment
     
                 /// <summary>
                 ///     In order to show as many features as possible, I created this pretty useless Engine.
@@ -161,9 +163,9 @@ namespace Svelto.ECS.Vanilla.Example
                 ///     So, yes, normally engines just implement IQueryingEntityViewEngine (see other engine below)
                 /// </summary>
     
-                #endregion
+#endregion
                 
-                public class BehaviourForEntityClassEngine : SingleEntityViewEngine<BehaviourEntityViewForEntity>
+                public class BehaviourForEntityClassEngine : SingleEntityEngine<BehaviourEntityViewStruct>
                 {
                     readonly IEntityFunctions _entityFunctions;
     
@@ -172,7 +174,7 @@ namespace Svelto.ECS.Vanilla.Example
                         _entityFunctions = entityFunctions;
                     }
     
-                    protected override void Add(BehaviourEntityViewForEntity entity)
+                    protected override void Add(ref BehaviourEntityViewStruct entity)
                     {
                         if (entity.simpleComponent.isInGroup == false)
                         {
@@ -184,13 +186,13 @@ namespace Svelto.ECS.Vanilla.Example
                         {
                             Console.Log("Grouped EntityView Added");
     
-                            _entityFunctions.SwapEntityGroup(entity.ID, 0, 1);
+                            _entityFunctions.SwapEntityGroup(entity.ID.entityID, 0, 1);
                             Console.Log("Grouped EntityView Swapped");
-                            _entityFunctions.RemoveEntity(entity.ID);    
+                            _entityFunctions.RemoveEntity(entity.ID.entityID, 1);    
                         }
                     }
     
-                    protected override void Remove(BehaviourEntityViewForEntity entity)
+                    protected override void Remove(ref BehaviourEntityViewStruct entity)
                     {
                         if (entity.simpleComponent.isInGroup == false)
                             Console.Log(entity.simpleComponent.name + "EntityView Removed");
@@ -203,14 +205,13 @@ namespace Svelto.ECS.Vanilla.Example
 
         namespace EntityAsStruct
         {
-            #region comment
+#region comment
             //Entity can generate EntityView and EntityStructs at the same time
             //this is why this special descriptor provided by the framework
             //is called MixedEntityDescriptor. It's also the only way
             //to create EntityStructs.
-            #endregion
-            class SimpleEntityStructDescriptor : MixedEntityDescriptor
-                <EntityViewStructBuilder<EntityStruct>>
+#endregion
+            class SimpleEntityStructDescriptor : GenericEntityDescriptor<EntityStruct>
             {
             }
 
@@ -220,9 +221,8 @@ namespace Svelto.ECS.Vanilla.Example
                 //don't worry, boxing/unboxing will never happen.
                 struct EntityStruct : IEntityStruct
                 {
-                    public int ID { get; set; }
-
                     public int counter;
+                    public EGID ID { get; set; }
                 }
 
                 /// <summary>
@@ -233,7 +233,7 @@ namespace Svelto.ECS.Vanilla.Example
                 {
                     public IEntityViewsDB entityViewsDB { private get; set; }
 
-                    #region comment
+#region comment
                     /// <summary>
                     ///     Run() is the simplest Svelto.Tasks extension method to run whatever IEnumerator.
                     ///     if you want to know more about Svelto.Tasks, please check the relative
@@ -241,7 +241,7 @@ namespace Svelto.ECS.Vanilla.Example
                     ///     to run Engines Loop.
                     ///     Ready callback ensure that the entityViewsDB dependency is ready to be used.
                     /// </summary>
-                    #endregion
+#endregion
                     public void Ready()
                     {
                         Update().Run();
@@ -255,8 +255,7 @@ namespace Svelto.ECS.Vanilla.Example
                         {
                             var entityViews =
                                 entityViewsDB
-                                   .QueryGroupedEntityViewsAsArray<EntityStruct>
-                                        (0, out var count);
+                                   .QueryEntities<EntityStruct>(0, out var count);
 
                             if (count > 0)
                             {

@@ -4,6 +4,9 @@
     <AssemblyName>Svelto</AssemblyName>
     <RootNamespace>Svelto</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
