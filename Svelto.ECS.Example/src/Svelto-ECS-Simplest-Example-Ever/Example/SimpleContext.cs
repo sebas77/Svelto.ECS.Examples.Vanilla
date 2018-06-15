@@ -73,7 +73,7 @@ namespace Svelto.ECS.Vanilla.Example
             //build Entity with ID 1
             entityFactory.BuildEntity<SimpleEntityDescriptor>(1, new[] {new EntityImplementor("simpleEntity", false)});
             //build Entity with ID 0 in group 0
-            entityFactory.BuildEntityInGroup<SimpleEntityDescriptor>(0, 0, new[] {new EntityImplementor("simpleGroupedEntity", true)});
+            entityFactory.BuildEntity<SimpleEntityDescriptor>(0, 0, new[] {new EntityImplementor("simpleGroupedEntity", true)});
 
             #region comment           
             //Entities as struct do not need an implementor. They are much more rigid
@@ -83,7 +83,7 @@ namespace Svelto.ECS.Vanilla.Example
             //separated by their type, but belong to the same group
             //if they have the same groupID. 
             #endregion
-            entityFactory.BuildEntityInGroup<SimpleEntityStructDescriptor>(2, 0, null);
+            entityFactory.BuildEntity<SimpleEntityStructDescriptor>(2, 0, null);
 
             simpleSubmissionEntityViewScheduler.SubmitEntities();
 
@@ -184,7 +184,7 @@ namespace Svelto.ECS.Vanilla.Example
                         {
                             Console.Log("Grouped EntityView Added");
     
-                            _entityFunctions.SwapEntityGroup(entity.ID, 0, 1);
+                            _entityFunctions.SwapEntityGroup(entity.ID, 1);
                             Console.Log("Grouped EntityView Swapped");
                             _entityFunctions.RemoveEntity(entity.ID);    
                         }
@@ -209,8 +209,7 @@ namespace Svelto.ECS.Vanilla.Example
             //is called MixedEntityDescriptor. It's also the only way
             //to create EntityStructs.
             #endregion
-            class SimpleEntityStructDescriptor : MixedEntityDescriptor
-                <EntityViewStructBuilder<EntityStruct>>
+            class SimpleEntityStructDescriptor : GenericEntityDescriptor<EntityStruct>
             {
             }
 
@@ -218,11 +217,11 @@ namespace Svelto.ECS.Vanilla.Example
             {
                 //An EntityStruct must always implement the IEntityStruct interface
                 //don't worry, boxing/unboxing will never happen.
-                struct EntityStruct : IEntityStruct
+                public struct EntityStruct : IEntityStruct
                 {
-                    public int ID { get; set; }
-
                     public int counter;
+
+                    public EGID ID { get; set; }
                 }
 
                 /// <summary>
@@ -255,7 +254,7 @@ namespace Svelto.ECS.Vanilla.Example
                         {
                             var entityViews =
                                 entityViewsDB
-                                   .QueryGroupedEntityViewsAsArray<EntityStruct>
+                                   .QueryEntities<EntityStruct>
                                         (0, out var count);
 
                             if (count > 0)
