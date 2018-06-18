@@ -9,8 +9,6 @@ using Svelto.ECS.Vanilla.Example.EntityAsClass.SimpleEntity.SimpleEntityEngine;
 using Svelto.ECS.Vanilla.Example.EntityAsClass.EntityAsStruct;
 using Svelto.ECS.Vanilla.Example.EntityAsClass.EntityAsStruct.BehaviourForEntityStructEngine;
 
-using Console = Utility.Console;
-
 namespace Svelto.ECS.Vanilla.Example
 {
     #region comment
@@ -88,7 +86,7 @@ namespace Svelto.ECS.Vanilla.Example
             
             simpleSubmissionEntityViewScheduler.SubmitEntities();
 
-            Console.Log("Done - click any button to quit");
+            Utility.Console.Log("Done - click any button to quit");
 
             System.Console.ReadKey();
 
@@ -144,7 +142,7 @@ namespace Svelto.ECS.Vanilla.Example
                 /// </summary>
     
 #endregion
-                public struct BehaviourEntityViewStruct : IEntityView
+                public struct BehaviourEntityViewStruct : IEntityViewStruct
                 {
                     public IEntityComponent simpleComponent;
                     public EGID ID { get; set; }
@@ -178,16 +176,16 @@ namespace Svelto.ECS.Vanilla.Example
                     {
                         if (entity.simpleComponent.isInGroup == false)
                         {
-                            Console.Log("EntityView Added");
+                            Utility.Console.Log("EntityView Added");
 
                             _entityFunctions.RemoveEntity(entity.ID);
                         }
                         else
                         {
-                            Console.Log("Grouped EntityView Added");
+                            Utility.Console.Log("Grouped EntityView Added");
     
                             _entityFunctions.SwapEntityGroup(entity.ID.entityID, 0, 1);
-                            Console.Log("Grouped EntityView Swapped");
+                            Utility.Console.Log("Grouped EntityView Swapped");
                             _entityFunctions.RemoveEntity(entity.ID.entityID, 1);    
                         }
                     }
@@ -195,9 +193,9 @@ namespace Svelto.ECS.Vanilla.Example
                     protected override void Remove(ref BehaviourEntityViewStruct entity)
                     {
                         if (entity.simpleComponent.isInGroup == false)
-                            Console.Log(entity.simpleComponent.name + "EntityView Removed");
+                            Utility.Console.Log(entity.simpleComponent.name + "EntityView Removed");
                         else
-                            Console.Log("Grouped EntityView Removed");
+                            Utility.Console.Log("Grouped EntityView Removed");
                     }
                 }
             }
@@ -229,11 +227,12 @@ namespace Svelto.ECS.Vanilla.Example
                 ///     EntityStruct are meant to be use for tight high performance loops where
                 ///     cache coherence is considered during the design process
                 /// </summary>
-                public class EntityStructEngine : IQueryingEntityViewEngine
+                public class EntityStructEngine : IQueryingEntitiesEngine
                 {
-                    public IEntityViewsDB entityViewsDB { private get; set; }
+                    public IEntityDB entitiesDB { get; set; }
 
 #region comment
+
                     /// <summary>
                     ///     Run() is the simplest Svelto.Tasks extension method to run whatever IEnumerator.
                     ///     if you want to know more about Svelto.Tasks, please check the relative
@@ -249,12 +248,12 @@ namespace Svelto.ECS.Vanilla.Example
 
                     IEnumerator Update()
                     {
-                        Console.Log("Task Waiting for EntityStruct");
+                        Utility.Console.Log("Task Waiting for EntityStruct");
 
                         while (true)
                         {
                             var entityViews =
-                                entityViewsDB
+                                entitiesDB
                                    .QueryEntities<EntityStruct>(0, out var count);
 
                             if (count > 0)
@@ -262,7 +261,7 @@ namespace Svelto.ECS.Vanilla.Example
                                 for (var i = 0; i < count; i++)
                                     AddOne(ref entityViews[i].counter);
 
-                                Console.Log("Entity Struct engine executed");
+                                Utility.Console.Log("Entity Struct engine executed");
 
                                 yield break;
                             }
