@@ -229,7 +229,7 @@ namespace Svelto.ECS.Vanilla.Example
                 /// </summary>
                 public class EntityStructEngine : IQueryingEntitiesEngine
                 {
-                    public IEntityDB entitiesDB { get; set; }
+                    public IEntitiesDB entitiesDB { get; set; }
 
 #region comment
 
