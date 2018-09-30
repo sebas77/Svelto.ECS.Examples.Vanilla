@@ -69,9 +69,9 @@ namespace Svelto.ECS.Vanilla.Example
             #endregion
             
             //build Entity with ID 1
-            entityFactory.BuildEntity<SimpleEntityDescriptor>(1, new[] {new EntityImplementor("simpleEntity", false)});
+            entityFactory.BuildEntity<SimpleEntityDescriptor>(new EGID(1, 0), new[] {new EntityImplementor("simpleEntity", false)});
             //build Entity with ID 0 in group 0
-            entityFactory.BuildEntity<SimpleEntityDescriptor>(0, 0, new[] {new EntityImplementor("simpleGroupedEntity", true)});
+            entityFactory.BuildEntity<SimpleEntityDescriptor>(new EGID(0, 0), new[] {new EntityImplementor("simpleGroupedEntity", true)});
 
             #region comment           
             //Entities as struct do not need an implementor. They are much more rigid
@@ -80,9 +80,15 @@ namespace Svelto.ECS.Vanilla.Example
             //separated by their type, but belong to the same group
             //if they have the same groupID. 
             #endregion
+            
+            var exclusiveGroup = new ExclusiveGroup();
 
-            Profile.It(100000, () => { entityFactory.BuildEntity<SimpleEntityStructDescriptor>(Profile.UglyCount++, 2, null); },
-                () => {entityFactory.PreallocateEntitySpace<SimpleEntityStructDescriptor>(2, 1000000);});
+            Profile.It(100000, () =>
+                               {
+                                   
+                                   entityFactory.BuildEntity<SimpleEntityStructDescriptor>(Profile.UglyCount++, exclusiveGroup, null);
+                               },
+                () => {entityFactory.PreallocateEntitySpace<SimpleEntityStructDescriptor>(exclusiveGroup, 1000000);});
             
             simpleSubmissionEntityViewScheduler.SubmitEntities();
 
@@ -178,15 +184,15 @@ namespace Svelto.ECS.Vanilla.Example
                         {
                             Utility.Console.Log("EntityView Added");
 
-                            _entityFunctions.RemoveEntity(entity.ID);
+                            _entityFunctions.RemoveEntity<SimpleEntityDescriptor>(entity.ID);
                         }
                         else
                         {
                             Utility.Console.Log("Grouped EntityView Added");
     
-                            _entityFunctions.SwapEntityGroup(entity.ID.entityID, 0, 1);
+                            _entityFunctions.SwapEntityGroup<SimpleEntityDescriptor>(entity.ID.entityID, 0, 1);
                             Utility.Console.Log("Grouped EntityView Swapped");
-                            _entityFunctions.RemoveEntity(entity.ID.entityID, 1);    
+                            _entityFunctions.RemoveEntity<SimpleEntityDescriptor>(entity.ID.entityID, 1);    
                         }
                     }
     
